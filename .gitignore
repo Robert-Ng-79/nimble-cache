@@ -1,2 +1,4 @@
-# gleam duster -- sweep artifacts aside
+# nimble cache -- exclude cache data, __pycache__/
 __pycache__/
+*.pyc
+.DS_Store

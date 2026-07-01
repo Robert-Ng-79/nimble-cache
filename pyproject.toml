@@ -3,27 +3,27 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
-name = "gleam-duster"
-version = "0.3.0"
-description = "Static asset analyzer and cleanup report generator for web repositories"
+name = "nimble-cache"
+version = "0.2.0"
+description = "HTTP response caching middleware for Python web apps"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Internet :: WWW/HTTP",
 ]
 dependencies = [
     "click>=8.1",
-    "pillow>=10.0",
+    "redis>=5.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov", "ruff"]
 
 [project.scripts]
-gleam = "gleam.cli:main"
+nimble = "nimble.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

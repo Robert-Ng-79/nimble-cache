@@ -6,13 +6,13 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
-from .scanner import AssetIndex, AssetRecord, AssetKind
+from .middleware import CacheIndex, CacheEntry, AssetKind
 
 
-class CleanupReporter:
+class CacheReporter:
     """Generates human-readable and JSON cleanup manifests from asset scans."""
 
-    def summarize(self, index: AssetIndex) -> Dict[str, Any]:
+    def summarize(self, index: CacheIndex) -> Dict[str, Any]:
         savings = index.orphan_bytes
         dup_bytes = sum(a.size_bytes for a, _ in index.duplicates)
         return {
@@ -38,7 +38,7 @@ class CleanupReporter:
             },
         }
 
-    def render_text(self, index: AssetIndex) -> str:
+    def render_text(self, index: CacheIndex) -> str:
         s = self.summarize(index)
         lines = [
             f"Asset Analysis Report: {s['repo']}",
@@ -57,5 +57,5 @@ class CleanupReporter:
                      f"({s['duplicates']['wasted_mb']} MB wasted)")
         return "\n".join(lines)
 
-    def render_json(self, index: AssetIndex) -> str:
+    def render_json(self, index: CacheIndex) -> str:
         return json.dumps(self.summarize(index), indent=2, ensure_ascii=False)

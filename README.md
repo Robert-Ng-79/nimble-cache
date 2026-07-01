@@ -1,19 +1,19 @@
-# Gleam Duster
+# Nimble Cache
 
-![Status](https://img.shields.io/badge/status-active-success)
+HTTP response caching middleware for Python web apps. Supports Redis and in-memory backends with TTL.
 
-清辉拂过，尘埃无处可藏。
+## Installation
 
-A static asset analyzer for web repositories. Crawls repos for unused
-images, orphaned CSS, stale fonts, and dead-end links. Generates cleanup
-reports with file-level granularity.
+```bash
+pip install nimble-cache
+```
 
-## How It Works
-- Scheduled crawls across target repositories
-- AST-based usage analysis for frontend assets
-- Structured cleanup manifests committed as JSON reports
+## Usage
 
-## Goal
-Every kilobyte matters. Gleam Duster finds what you forgot to delete.
+```bash
+nimble --help
+```
 
-Written in Python. Runs on GitHub Actions hourly.
+## License
+
+MIT

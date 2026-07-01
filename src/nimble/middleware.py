@@ -1,5 +1,5 @@
 """
-Static asset scanner — discovers images, fonts, CSS, and media files.
+Static asset middleware — discovers images, fonts, CSS, and media files.
 
 Walks repository trees, extracts metadata (dimensions, file size, format),
 computes perceptual hashes for duplicate image detection, and tracks
@@ -21,7 +21,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
-logger = logging.getLogger("gleam.scanner")
+logger = logging.getLogger("nimble.middleware")
 
 
 class AssetKind(Enum):
@@ -35,7 +35,7 @@ class AssetKind(Enum):
 
 
 @dataclass
-class AssetRecord:
+class CacheEntry:
     """Metadata record for a discovered static asset."""
 
     path: str
@@ -65,7 +65,7 @@ class AssetRecord:
 
 
 @dataclass
-class AssetIndex:
+class CacheIndex:
     """Complete index of all assets found in a repository."""
 
     repo_path: str
@@ -74,9 +74,9 @@ class AssetIndex:
     total_bytes: int = 0
     by_kind: Dict[str, int] = field(default_factory=dict)
     by_extension: Dict[str, int] = field(default_factory=dict)
-    orphans: List[AssetRecord] = field(default_factory=list)
-    duplicates: List[Tuple[AssetRecord, AssetRecord]] = field(default_factory=list)
-    assets: List[AssetRecord] = field(default_factory=list)
+    orphans: List[CacheEntry] = field(default_factory=list)
+    duplicates: List[Tuple[CacheEntry, CacheEntry]] = field(default_factory=list)
+    assets: List[CacheEntry] = field(default_factory=list)
 
     @property
     def orphan_count(self) -> int:
@@ -100,7 +100,7 @@ class AssetIndex:
         }
 
 
-class AssetScanner:
+class CacheMiddleware:
     """Scans a repository for static assets and analyzes usage.
 
     Detects orphaned (unreferenced) assets, duplicate images via
@@ -154,7 +154,7 @@ class AssetScanner:
     def __init__(self, max_file_mb: int = 50):
         self.max_file_bytes = max_file_mb * 1024 * 1024
 
-    def scan(self, root: str | Path) -> AssetIndex:
+    def scan(self, root: str | Path) -> CacheIndex:
         """Full scan of a repository directory."""
         root_path = Path(root).resolve()
         logger.info("Scanning: %s", root_path)
@@ -166,8 +166,8 @@ class AssetScanner:
                 if resolved:
                     all_references[resolved].append(str(source_file.relative_to(root_path)))
 
-        index = AssetIndex(repo_path=str(root_path))
-        phash_groups: Dict[str, List[AssetRecord]] = defaultdict(list)
+        index = CacheIndex(repo_path=str(root_path))
+        phash_groups: Dict[str, List[CacheEntry]] = defaultdict(list)
 
         for asset_file in self._walk_assets(root_path):
             record = self._analyze_asset(asset_file, root_path)
@@ -243,11 +243,11 @@ class AssetScanner:
             return None
         return str(resolved)
 
-    def _analyze_asset(self, filepath: Path, root: Path) -> AssetRecord:
+    def _analyze_asset(self, filepath: Path, root: Path) -> CacheEntry:
         stat = filepath.stat()
         ext = filepath.suffix.lower()
         kind = self._classify_kind(ext)
-        record = AssetRecord(
+        record = CacheEntry(
             path=str(filepath.relative_to(root)),
             kind=kind,
             size_bytes=stat.st_size,
@@ -267,17 +267,17 @@ class AssetScanner:
 
     @staticmethod
     def _classify_kind(ext: str) -> AssetKind:
-        if ext in AssetScanner.IMAGE_EXTS:
+        if ext in CacheMiddleware.IMAGE_EXTS:
             return AssetKind.IMAGE
-        if ext in AssetScanner.FONT_EXTS:
+        if ext in CacheMiddleware.FONT_EXTS:
             return AssetKind.FONT
-        if ext in AssetScanner.CSS_EXTS:
+        if ext in CacheMiddleware.CSS_EXTS:
             return AssetKind.CSS
-        if ext in AssetScanner.MEDIA_EXTS:
+        if ext in CacheMiddleware.MEDIA_EXTS:
             return AssetKind.MEDIA
-        if ext in AssetScanner.DOC_EXTS:
+        if ext in CacheMiddleware.DOC_EXTS:
             return AssetKind.DOCUMENT
-        if ext in AssetScanner.DATA_EXTS:
+        if ext in CacheMiddleware.DATA_EXTS:
             return AssetKind.DATA
         return AssetKind.OTHER
 

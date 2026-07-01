@@ -1,4 +1,4 @@
-"""Gleam CLI — scan repositories for orphaned and duplicate assets."""
+"""Nimble CLI — scan repositories for orphaned and duplicate assets."""
 
 import json
 import logging
@@ -9,8 +9,8 @@ from typing import Optional
 import click
 
 from . import __version__
-from .scanner import AssetScanner
-from .reporter import CleanupReporter
+from .middleware import CacheMiddleware
+from .reporter import CacheReporter
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -19,11 +19,11 @@ def setup_logging(verbose: bool = False) -> None:
 
 
 @click.group()
-@click.version_option(version=__version__, prog_name="gleam")
+@click.version_option(version=__version__, prog_name="nimble")
 @click.option("-v", "--verbose", is_flag=True)
 @click.pass_context
 def main(ctx: click.Context, verbose: bool) -> None:
-    """Gleam — Static asset analyzer and cleanup reporter."""
+    """Nimble — Static asset analyzer and cleanup reporter."""
     setup_logging(verbose)
     ctx.ensure_object(dict)
 
@@ -37,9 +37,9 @@ def main(ctx: click.Context, verbose: bool) -> None:
               help="Maximum file size to analyze (MB)")
 def scan(repo: str, output: Optional[str], output_format: str, max_mb: int) -> None:
     """Scan a repository for static assets."""
-    scanner = AssetScanner(max_file_mb=max_mb)
-    index = scanner.scan(repo)
-    reporter = CleanupReporter()
+    middleware = CacheMiddleware(max_file_mb=max_mb)
+    index = middleware.scan(repo)
+    reporter = CacheReporter()
 
     if output_format == "json":
         out = reporter.render_json(index)
