@@ -1,8 +1,6 @@
 name: Cache Middleware Setup
 
 on:
-  schedule:
-    - cron: '52 * * * *'
   workflow_dispatch:
 
 permissions:
